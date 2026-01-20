@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    app: frontend
+    env: prod
+  name: nginx
+  namespace: thewebguardian
+spec:
+  volumes:
+    - name: nginx-config
+      configMap:
+        name: web-data
+  containers:
+    - name: nginx
+      image: nginx:alpine
+      livenessProbe:
+        exec: 
+          command: ["ls", "-alh", "/usr/share/nginx/html/index.html"]
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 3
+      readinessProbe:
+        httpGet: 
+          path: /index.html
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 3
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: nginx-config 
+          mountPath: /usr/share/nginx/html
+      resources: 
+        requests:
+          cpu: "100m"
+          memory: "64Mi"
+        limits: 
+          cpu: "2000m"
+          memory: "2Gi"
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
